@@ -258,7 +258,8 @@ class EmojiSuggester extends EditorSuggest<Gemoji> {
 
 	onTrigger(cursor: EditorPosition, editor: Editor, _: TFile): EditorSuggestTriggerInfo | null {
 		if (!this.plugin.settings.suggester) return null;
-		const sub = editor.getLine(cursor.line).slice(0, cursor.ch);
+		const sub = this.getWordIncludingIndex(editor.getLine(cursor.line), cursor.ch);
+		console.log(sub, sub.length);
 		const matches = sub.match(this.plugin.settings.triggerFromFirst ? this.queryRegFi : this.queryRegex);
 		if (matches == null || matches.groups.sc == null || matches.groups.col == null
 			|| (this.plugin.settings.strictTrigger && (matches.groups.key && matches.groups.col.length % 2 === 0)) // don't match dataview key::value
@@ -273,6 +274,19 @@ class EmojiSuggester extends EditorSuggest<Gemoji> {
 			},
 			query: matches.groups.col + matches.groups.sc,
 		}
+	}
+
+	getWordIncludingIndex(line: string, index: number): string {
+		let start = index;
+		while (start > 0 && line[start - 1] !== ' ') {
+			start--;
+		}
+		let end = index;
+		while (end < line.length && line[end] !== ' ') {
+			end++;
+		}
+
+		return line.substring(start, end);
 	}
 
 	getSuggestions(context: EditorSuggestContext): Gemoji[] {
